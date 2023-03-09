@@ -9,6 +9,9 @@
 #include "cimgui.h"
 #include "sokol_imgui.h"
 
+// Game includes
+#include "gamestate.h"
+
 static struct {
     sg_pass_action pass_action;
 } state;
