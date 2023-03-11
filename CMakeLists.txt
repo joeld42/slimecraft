@@ -61,10 +61,19 @@ endif()
 target_link_libraries(demo sokol)
 
 #=== Slimecraft test app
-add_executable( slimeserv slimeserv_cmdline.c )
+set ( SLIMESERV_SRC 
+    gamestate.h
+    gamestate.c
+    )
+
+add_executable( slimeserv 
+                ${SLIMESERV_SRC}
+                slimeserv_cmdline.c )
 target_link_libraries(slimeserv ${CONAN_LIBS} m )
 
-add_executable( slimeserv_gui slimeserv_gui.c )
+add_executable( slimeserv_gui 
+                ${SLIMESERV_SRC}
+                slimeserv_gui.c )
 target_link_libraries(slimeserv_gui ${CONAN_LIBS} sokol m )
 
 # Extra executables == sokol GP samples
