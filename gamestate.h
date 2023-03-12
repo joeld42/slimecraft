@@ -24,10 +24,18 @@ enum {
     UnitType_WORKER
 };
 
+enum {
+    Action_IDLE,
+    Action_MOVING,
+    ACTION_HARVESTING
+};
+
 typedef struct  {
     u8 unitType; 
     u8 player;   
+    u8 action;
     SimVec2 pos;
+    SimVec2 target;
 } SlimeGameUnit;
 
 #define MAX_UNITS (200)

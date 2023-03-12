@@ -20,6 +20,13 @@
 
 #define SIMTICK_TIME (1.0/10.0)
 
+ImColor playerCol[4] = {
+    { 0.94, 0.02, 0.51, 1.0 },
+    { 0.02, 0.84, 0.95, 1.0 },
+    { 0.65, 0.96, 0.01, 1.0 },
+    { 0.95, 0.79, 0.01, 1.0 }
+};
+
 static struct {
     sg_pass_action pass_action;
     sgp_vec2 points_buffer[4096];
@@ -71,21 +78,26 @@ static void init(void) {
 
 }
 
-static void draw_unit( float x, float y) {
+static void draw_unit( int player, float x, float y) {
 
     unsigned int count = 0;
     float step = (2.0f*M_PI)/6.0f;
     float r = 0.3f;
+    sgp_vec2 u = {x, y};
+    sgp_vec2 vlast;
     for(float theta = 0.0f; theta < 2.0f*M_PI + step*0.5f; theta+=step) {
         sgp_vec2 v = {x + r*cosf(theta), y - r*sinf(theta)};
-        state.points_buffer[count++] = v;
-        if(count % 3 == 1) {
-            sgp_vec2 u = {x, y};
+        if (theta > 0.0) {
+            state.points_buffer[count++] = vlast;        
+            state.points_buffer[count++] = v;
             state.points_buffer[count++] = u;
         }
+        vlast = v;
     }    
-    sgp_set_color(0.0f, 1.0f, 1.0f, 1.0f);
-    sgp_draw_filled_triangles_strip( state.points_buffer, count) ;    
+
+    ImColor col = playerCol[ player % 4 ];
+    sgp_set_color(col.Value.x, col.Value.y, col.Value.z, 1.0 );
+    sgp_draw_filled_triangles( (sgp_triangle*)state.points_buffer, count/3) ;    
 
 }
 
@@ -131,7 +143,7 @@ static void draw_gamestate() {
    float gridAlpha = state.cam_zoom / state.map_size;
    if (gridAlpha < 0.0f) gridAlpha = 0.0f;
    if (gridAlpha > 1.0f) gridAlpha = 1.0f; 
-   gridAlpha = 1.0f - gridAlpha;  
+   gridAlpha = powf( 1.0f - gridAlpha, 3.0f );
       
    sgp_set_blend_mode(SGP_BLENDMODE_BLEND);
    sgp_set_color(1.0f, 1.0f, 1.0f, gridAlpha );
@@ -154,7 +166,7 @@ static void draw_gamestate() {
     for (int i=0; i < numUnits; i++ ) {
         HUnit hu = SlimeGame_GetUnitByIndex( &game, i );
         SimVec2 pos = SlimeGame_GetUnitPosition( &game, hu );
-        draw_unit( pos.x, pos.y );
+        draw_unit( i % 6, pos.x, pos.y );
     }
 
 
@@ -186,7 +198,7 @@ static void frame(void) {
     igColorEdit3("Background", &state.pass_action.colors[0].value.r, 
     ImGuiColorEditFlags_None);
     
-    igSliderFloat2( "Position", &(state.cam_center), 0, state.map_size, "%2.0f", ImGuiSliderFlags_None );
+    igSliderFloat2( "Position", (float*)&(state.cam_center), 0, state.map_size, "%2.0f", ImGuiSliderFlags_None );
     igSliderFloat( "Zoom", &(state.cam_zoom), 1.0f, 
                 state.map_size * 1.5, "%2.0f", ImGuiSliderFlags_None );
 
