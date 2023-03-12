@@ -10,11 +10,15 @@
 #include "cimgui.h"
 #include "sokol_imgui.h"
 
+#include "gamestate.h"
+
 #include <math.h>
 #include <stdlib.h>
 
 // Game includes
 #include "gamestate.h"
+
+#define SIMTICK_TIME (1.0/10.0)
 
 static struct {
     sg_pass_action pass_action;
@@ -27,7 +31,13 @@ static struct {
     // Camera bounds
     sgp_vec2 cam_rect_min;
     sgp_vec2 cam_rect_max;
+    HUnit hFocusUnit;
+
+    // Stuff for game control
+    float tickLeftover;
 } state;
+
+SlimeGame game;
 
 static void init(void) {
     sg_setup(&(sg_desc){
@@ -54,6 +64,29 @@ static void init(void) {
     state.map_size = 128.0;
     state.cam_center = (sgp_vec2){ state.map_size / 2.0f, state.map_size / 2.0f };    
     state.cam_zoom = state.map_size;
+
+    // Init the game manager (allocs gamestate)
+    SlimeGame_Init( &game );
+    state.tickLeftover = 0.0f;
+
+}
+
+static void draw_unit( float x, float y) {
+
+    unsigned int count = 0;
+    float step = (2.0f*M_PI)/6.0f;
+    float r = 0.3f;
+    for(float theta = 0.0f; theta <= 2.0f*M_PI + step*0.5f; theta+=step) {
+        sgp_vec2 v = {x + r*cosf(theta), y - r*sinf(theta)};
+        state.points_buffer[count++] = v;
+        if(count % 3 == 1) {
+            sgp_vec2 u = {x, y};
+            state.points_buffer[count++] = u;
+        }
+    }
+    sgp_set_color(0.0f, 1.0f, 1.0f, 1.0f);
+    sgp_draw_filled_triangles_strip( state.points_buffer, count);
+
 }
 
 static void draw_gamestate() {
@@ -116,6 +149,13 @@ static void draw_gamestate() {
    }
    sgp_draw_lines( (sgp_line*)state.points_buffer, (state.map_size+1) * 2 );
 
+    // Draw units
+    int numUnits = SlimeGame_GetNumUnits( &game );
+    for (int i=0; i < numUnits; i++ ) {
+        HUnit hu = SlimeGame_GetUnitByIndex( &game, i );
+        SimVec2 pos = SlimeGame_GetUnitPosition( &game, hu );
+        draw_unit( pos.x, pos.y );
+    }
 
 
 }
@@ -127,6 +167,13 @@ static void frame(void) {
         .delta_time = sapp_frame_duration(),
         .dpi_scale = sapp_dpi_scale(),
     });
+
+    // handle tick
+    state.tickLeftover += sapp_frame_duration();
+    while (state.tickLeftover > SIMTICK_TIME) {
+        state.tickLeftover -= SIMTICK_TIME;
+        SlimeGame_Tick( &game );
+    }
 
     // draw gamestate
     draw_gamestate();
@@ -142,8 +189,20 @@ static void frame(void) {
     igSliderFloat2( "Position", &(state.cam_center), 0, state.map_size, "%2.0f", ImGuiSliderFlags_None );
     igSliderFloat( "Zoom", &(state.cam_zoom), 1.0f, 
                 state.map_size * 1.5, "%2.0f", ImGuiSliderFlags_None );
+
+    bool doFocus = (state.hFocusUnit != 999);
+    igCheckbox( "Focus Unit", &doFocus );
+    if (doFocus) {
+        state.hFocusUnit = SlimeGame_GetUnitByIndex( &game, 0 );
+
+        SimVec2 pos = SlimeGame_GetUnitPosition( &game, state.hFocusUnit );
+        state.cam_center = (sgp_vec2){ pos.x, pos.y };
+    } else {
+        state.hFocusUnit = 999;
+    }
     
     igEnd();
+
     /*=== UI CODE ENDS HERE ===*/
 
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());

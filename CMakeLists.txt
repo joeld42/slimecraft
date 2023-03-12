@@ -64,6 +64,8 @@ target_link_libraries(demo sokol)
 set ( SLIMESERV_SRC 
     gamestate.h
     gamestate.c
+    common.h
+    common.c
     )
 
 add_executable( slimeserv 
