@@ -68,7 +68,7 @@ void SlimeGame_Reset( SlimeGame *game ) {
     RNG_Init( &(game->curr->rng) );
 
     // set up player state
-    game->info->numPlayers = 1;
+    game->info->numPlayers = 4;
 
     // spawn some Founders
     for (int i = 0; i < game->info->numPlayers; i++ ) {

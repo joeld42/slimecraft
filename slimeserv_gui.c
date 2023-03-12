@@ -76,16 +76,16 @@ static void draw_unit( float x, float y) {
     unsigned int count = 0;
     float step = (2.0f*M_PI)/6.0f;
     float r = 0.3f;
-    for(float theta = 0.0f; theta <= 2.0f*M_PI + step*0.5f; theta+=step) {
+    for(float theta = 0.0f; theta < 2.0f*M_PI + step*0.5f; theta+=step) {
         sgp_vec2 v = {x + r*cosf(theta), y - r*sinf(theta)};
         state.points_buffer[count++] = v;
         if(count % 3 == 1) {
             sgp_vec2 u = {x, y};
             state.points_buffer[count++] = u;
         }
-    }
+    }    
     sgp_set_color(0.0f, 1.0f, 1.0f, 1.0f);
-    sgp_draw_filled_triangles_strip( state.points_buffer, count);
+    sgp_draw_filled_triangles_strip( state.points_buffer, count) ;    
 
 }
 
@@ -180,7 +180,7 @@ static void frame(void) {
 
     /*=== UI CODE STARTS HERE ===*/
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
-    igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){400, 200}, ImGuiCond_Once);
     
     igBegin("Hello Dear ImGui!", 0, ImGuiWindowFlags_None);
     igColorEdit3("Background", &state.pass_action.colors[0].value.r, 
