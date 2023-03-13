@@ -79,7 +79,7 @@ void SlimeGame_Reset( SlimeGame *game ) {
     RNG_Init( &(game->curr->rng) );
 
     // set up player state
-    game->info->numPlayers = 20;
+    game->info->numPlayers = 4;
 
     // spawn some Founders
     for (int i = 0; i < game->info->numPlayers; i++ ) {
@@ -124,8 +124,6 @@ void SlimeGame_Tick( SlimeGame *game ) {
                 u->pos.x += dir.x * speed;
                 u->pos.y += dir.y * speed;
             }
-        }
-        
+        }        
     }
-
 }

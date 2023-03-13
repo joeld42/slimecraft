@@ -16,6 +16,12 @@ typedef int64_t   i64;
 typedef float     f32;
 typedef double    f64;
 
+//===[ Game types ] ======
+
+// handle types, might make struct
+typedef u32 HUnit;
+typedef u32 Building;
+
 
 //==[ Random Number Generator ]==========================
 

@@ -54,10 +54,6 @@ typedef struct {
     SlimeGameState *curr;
 } SlimeGame;
 
-// handle types, might make struct
-typedef u32 HUnit;
-typedef u32 Building;
-
 // Compute checksum for gamestate
 u64 GameState_Checksum( SlimeGameState *state );
 

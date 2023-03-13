@@ -66,6 +66,12 @@ set ( SLIMESERV_SRC
     gamestate.c
     common.h
     common.c
+    cmdlist.h
+    cmdlist.c
+    slimeserver.h
+    slimeserver.c
+    slimeclient.h
+    slimeclient.c
     )
 
 add_executable( slimeserv 
