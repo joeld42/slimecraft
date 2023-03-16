@@ -44,6 +44,18 @@ SimVec2 SlimeGame_GetUnitPosition( SlimeGame *game, HUnit unit ) {
     return state->units[ unit ].pos;
 }
 
+SimVec2 SlimeGame_GetUnitAction( SlimeGame *game, HUnit unit, u8 *outAction )
+{
+    SlimeGameState *state = game->curr;
+    SlimeGameUnit *uu = state->units +unit;
+    if (outAction!=NULL) {
+        *outAction = uu->action;
+    }
+    SimVec2 result = (uu->action == Action_MOVING) ? uu->target : uu->pos;
+    //SimVec2 result = (SimVec2) { uu->target.x, uu->target.y };
+    return result;
+}
+
 void SlimeGame_SetUnitPosition( SlimeGame *game, HUnit unit, SimVec2 pos ) {
     SlimeGameState *state = game->curr;
     assert(unit < state->numUnits);

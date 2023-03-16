@@ -5,6 +5,7 @@
 #include "gamestate.h"
 #include "cmdlist.h"
 
+
 typedef struct {
     
     // Manages the gamestate 
@@ -16,9 +17,13 @@ typedef struct {
     // Info for stepping the gamestate.
     u32 currentTick; // Count of sim ticks    
     float tickLeftover; // leftover time in seconds
+
+    
+
 } SlimeServer;
 
 
-
+void SlimeServer_InitAndStartServer( SlimeServer *server );
+void SlimeServer_Update( SlimeServer *server, f32 dt );
 
 #endif

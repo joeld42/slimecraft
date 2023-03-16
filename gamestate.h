@@ -3,6 +3,11 @@
 
 #include "common.h"
 
+
+// Sim tick is 10 ticks per second
+#define SIMTICK_TIME (1.0/10.0)
+#define SIMTICKS_PER_COMM_TURN (4)
+
 // Info is game which don't change
 typedef struct  {
     u16 mapSizeX;
@@ -40,6 +45,7 @@ typedef struct  {
 
 #define MAX_UNITS (200)
 #define MAX_BUILDINGS (100)
+
 typedef struct {
     
     u16 numUnits;
@@ -65,6 +71,8 @@ u16 SlimeGame_GetNumUnits( SlimeGame *game );
 HUnit SlimeGame_GetUnitByIndex( SlimeGame *game, u16 index );
 SimVec2 SlimeGame_GetUnitPosition( SlimeGame *game, HUnit unit );
 void SlimeGame_SetUnitPosition( SlimeGame *game, HUnit unit, SimVec2 pos );
+
+SimVec2 SlimeGame_GetUnitAction( SlimeGame *game, HUnit unit, u8 *outAction );
 
 void SlimeGame_Init( SlimeGame *game );
 void SlimeGame_Reset( SlimeGame *game );

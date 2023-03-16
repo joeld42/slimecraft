@@ -17,8 +17,8 @@
 
 // Game includes
 #include "gamestate.h"
-
-#define SIMTICK_TIME (1.0/10.0)
+#include "slimeserver.h"
+#include "slimeclient.h"
 
 ImColor playerCol[4] = {
     { 0.94, 0.02, 0.51, 1.0 },
@@ -44,7 +44,8 @@ static struct {
     float tickLeftover;
 } state;
 
-SlimeGame game;
+SlimeServer server;
+
 
 static void init(void) {
     sg_setup(&(sg_desc){
@@ -72,13 +73,11 @@ static void init(void) {
     state.cam_center = (sgp_vec2){ state.map_size / 2.0f, state.map_size / 2.0f };    
     state.cam_zoom = state.map_size;
 
-    // Init the game manager (allocs gamestate)
-    SlimeGame_Init( &game );
-    state.tickLeftover = 0.0f;
+    SlimeServer_InitAndStartServer( &server );
 
 }
 
-static void draw_unit( int player, float x, float y) {
+static void draw_unit( int player, float x, float y ) {
 
     unsigned int count = 0;
     float step = (2.0f*M_PI)/6.0f;
@@ -97,7 +96,9 @@ static void draw_unit( int player, float x, float y) {
 
     ImColor col = playerCol[ player % 4 ];
     sgp_set_color(col.Value.x, col.Value.y, col.Value.z, 1.0 );
-    sgp_draw_filled_triangles( (sgp_triangle*)state.points_buffer, count/3) ;    
+    sgp_draw_filled_triangles( (sgp_triangle*)state.points_buffer, count/3) ;
+
+    
 
 }
 
@@ -162,11 +163,21 @@ static void draw_gamestate() {
    sgp_draw_lines( (sgp_line*)state.points_buffer, (state.map_size+1) * 2 );
 
     // Draw units
-    int numUnits = SlimeGame_GetNumUnits( &game );
+    SlimeGame *game = &server.game;
+    int numUnits = SlimeGame_GetNumUnits( game );
     for (int i=0; i < numUnits; i++ ) {
-        HUnit hu = SlimeGame_GetUnitByIndex( &game, i );
-        SimVec2 pos = SlimeGame_GetUnitPosition( &game, hu );
+        HUnit hu = SlimeGame_GetUnitByIndex( game, i );
+        SimVec2 pos = SlimeGame_GetUnitPosition( game, hu );
         draw_unit( i % 6, pos.x, pos.y );
+
+        //sgp_set_color(col.Value.x, col.Value.y, col.Value.z, 1.0 );
+        //sgp_draw_filled_triangles( (sgp_triangle*)state.points_buffer, count/3) ;
+        u8 action;
+        SimVec2 targ = SlimeGame_GetUnitAction( game, hu, &action );
+        if (action == Action_MOVING) {
+            sgp_set_color(0.5f, 1.0f, 0.5f, 1.0 );
+            sgp_draw_line( pos.x, pos.y, targ.x, targ.y );
+        }
     }
 
 
@@ -180,13 +191,11 @@ static void frame(void) {
         .dpi_scale = sapp_dpi_scale(),
     });
 
-    // handle tick
-    state.tickLeftover += sapp_frame_duration();
-    while (state.tickLeftover > SIMTICK_TIME) {
-        state.tickLeftover -= SIMTICK_TIME;
-        SlimeGame_Tick( &game );
-    }
+    SlimeGame *game = &server.game;
 
+    // handle tick
+    SlimeServer_Update( &server, sapp_frame_duration() );
+    
     // draw gamestate
     draw_gamestate();
 
@@ -205,9 +214,9 @@ static void frame(void) {
     bool doFocus = (state.hFocusUnit != 999);
     igCheckbox( "Focus Unit", &doFocus );
     if (doFocus) {
-        state.hFocusUnit = SlimeGame_GetUnitByIndex( &game, 0 );
+        state.hFocusUnit = SlimeGame_GetUnitByIndex( game, 0 );
 
-        SimVec2 pos = SlimeGame_GetUnitPosition( &game, state.hFocusUnit );
+        SimVec2 pos = SlimeGame_GetUnitPosition( game, state.hFocusUnit );
         state.cam_center = (sgp_vec2){ pos.x, pos.y };
     } else {
         state.hFocusUnit = 999;
