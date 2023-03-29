@@ -24,10 +24,10 @@
 #include "slimeclient.h"
 
 ImColor playerCol[4] = {
-    { 0.94, 0.02, 0.51, 1.0 },
-    { 0.02, 0.84, 0.95, 1.0 },
-    { 0.65, 0.96, 0.01, 1.0 },
-    { 0.95, 0.79, 0.01, 1.0 }
+    { 0.94f, 0.02f, 0.51f, 1.0f },
+    { 0.02f, 0.84f, 0.95f, 1.0f },
+    { 0.65f, 0.96f, 0.01f, 1.0f },
+    { 0.95f, 0.79f, 0.01f, 1.0f }
 };
 
 static struct {
@@ -46,6 +46,11 @@ static struct {
     // Stuff for game control
     float tickLeftover;
 } state;
+
+static struct
+{
+	bool showPlayerWindow;
+} guiState;
 
 SlimeServer server;
 
@@ -182,8 +187,54 @@ static void draw_gamestate() {
             sgp_draw_line( pos.x, pos.y, targ.x, targ.y );
         }
     }
+}
 
+static void ShowMainMenubar()
+{
+	if (igBeginMainMenuBar())
+	{
+		if (igBeginMenu("Edit", true))
+		{
+			if (igMenuItem_Bool("Undo", "CTRL+Z", false, true)) {}
+			if (igMenuItem_Bool("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+			igSeparator();
+			if (igMenuItem_Bool("Cut", "CTRL+X", false, true)) {}
+			if (igMenuItem_Bool("Copy", "CTRL+C", false, true)) {}
+			if (igMenuItem_Bool("Paste", "CTRL+V", false, true)) {}
+			igEndMenu();
+		}
 
+		if (igBeginMenu("Window", true))
+		{
+			igCheckbox("Players", &(guiState.showPlayerWindow));
+			igEndMenu();
+		}
+
+		igEndMainMenuBar();
+	}
+}
+
+static void ShowPlayerWindow(SlimeGame* game)
+{
+	igSetNextWindowPos((ImVec2) { 10, 10 }, ImGuiCond_Once, (ImVec2) { 0, 0 });
+	igSetNextWindowSize((ImVec2) { 400, 200 }, ImGuiCond_Once);
+
+	if (igBegin("Players", &(guiState.showPlayerWindow), ImGuiWindowFlags_None)) {
+
+		igLabelText("num_players", "%d Active Players", game->info->numPlayers);
+		igSeparator();
+
+		if (game->info->numPlayers < MAX_PLAYERS)
+		{
+
+			if (igSmallButton("Add Player"))
+			{
+				printf("TODO: Add Player.\n");
+			}
+		}
+
+		igEnd();
+	}
 }
 
 static void frame(void) {
@@ -203,10 +254,18 @@ static void frame(void) {
     draw_gamestate();
 
     /*=== UI CODE STARTS HERE ===*/
+
+	ShowMainMenubar();
+
+	if (guiState.showPlayerWindow)
+	{
+		ShowPlayerWindow( game );
+	}
+
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 200}, ImGuiCond_Once);
     
-    igBegin("Hello Dear ImGui!", 0, ImGuiWindowFlags_None);
+    igBegin("Slimecraft Server GUI", 0, ImGuiWindowFlags_None);
     igColorEdit3("Background", &state.pass_action.colors[0].value.r, 
     ImGuiColorEditFlags_None);
     
@@ -261,7 +320,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = event,
-        .window_title = "SlimeServ",
+        .window_title = "SlimeServGUI",
         .width = 800,
         .height = 600,
         .icon.sokol_default = true,

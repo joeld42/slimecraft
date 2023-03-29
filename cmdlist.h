@@ -2,10 +2,10 @@
 #define CMDLIST_H
 
 #include "common.h"
+#include "gamestate.h"
 
 // Will probably be much smaller but just for fun
 #define MAX_CMDS (100)
-#define MAX_PLAYERS (4)
 enum {
     Command_UNKNOWN,
 

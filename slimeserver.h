@@ -18,7 +18,6 @@ typedef struct {
     u32 currentTick; // Count of sim ticks    
     float tickLeftover; // leftover time in seconds
 
-    
 
 } SlimeServer;
 

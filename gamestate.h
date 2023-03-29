@@ -3,16 +3,23 @@
 
 #include "common.h"
 
-
 // Sim tick is 10 ticks per second
 #define SIMTICK_TIME (1.0f/10.0f)
 #define SIMTICKS_PER_COMM_TURN (4)
 
-// Info is game which don't change
+#define MAX_PLAYERS (6)
+
+typedef struct
+{
+	b32 playerReady;
+} PlayerInfo;
+
+// Info is game state which doesn't change
 typedef struct  {
     u16 mapSizeX;
     u16 mapSizeY;
     u8 numPlayers;
+	PlayerInfo playerInfo[MAX_PLAYERS];
 } SlimeGameInfo;
 
 typedef struct {

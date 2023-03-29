@@ -15,7 +15,8 @@ typedef uint64_t  u64;
 typedef int64_t   i64;
 typedef float     f32;
 typedef double    f64;
-
+typedef uint8_t   b8;
+typedef uint32_t  b32;
 //===[ Game types ] ======
 
 // handle types, might make struct
