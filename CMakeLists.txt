@@ -9,8 +9,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     find_package(Threads REQUIRED)
 endif()
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+#include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+#conan_basic_setup()
+
+#=== Library: ENET
+include( ${PROJECT_SOURCE_DIR}/enet/CMakeLists.txt)
+
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+    set ( ENET_LIBS enet winmm ws2_32)
+endif()
+
 
 #=== LIBRARY: cimgui + Dear ImGui
 add_library(cimgui STATIC 
@@ -33,7 +41,10 @@ set(SOKOL_HEADERS
     sokol/sokol_glue.h
     sokol/sokol_gp.h
     )
+
+
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set( MATHLIB m )
     add_library(sokol STATIC sokol/sokol.c ${SOKOL_HEADERS})
     target_compile_options(sokol PRIVATE -x objective-c)
     target_link_libraries(sokol PUBLIC
@@ -77,40 +88,40 @@ set ( SLIMESERV_SRC
 add_executable( slimeserv 
                 ${SLIMESERV_SRC}
                 slimeserv_cmdline.c )
-target_link_libraries(slimeserv ${CONAN_LIBS} m )
+target_link_libraries(slimeserv ${ENET_LIBS} ${MATHLIB} )
 
-add_executable( slimeserv_gui 
+add_executable( slimeserv_gui WIN32
                 ${SLIMESERV_SRC}
                 slimeserv_gui.c )
-target_link_libraries(slimeserv_gui ${CONAN_LIBS} sokol m )
+target_link_libraries(slimeserv_gui sokol ${ENET_LIBS} ${MATHLIB} )
 
 # Extra executables == sokol GP samples
-add_executable( gp_prims sokol_gp/samples/sample-primitives.c )
-target_link_libraries(gp_prims sokol m )
+add_executable( gp_prims WIN32 sokol_gp/samples/sample-primitives.c )
+target_link_libraries(gp_prims sokol ${MATHLIB} )
 
-add_executable( gp_blend sokol_gp/samples/sample-blend.c )
+add_executable( gp_blend WIN32 sokol_gp/samples/sample-blend.c )
 target_include_directories( gp_blend PRIVATE sokol_gp/shaders )
-target_link_libraries(gp_blend sokol m )
+target_link_libraries(gp_blend sokol ${MATHLIB} )
 
-add_executable( gp_sdf sokol_gp/samples/sample-sdf.c )
+add_executable( gp_sdf WIN32 sokol_gp/samples/sample-sdf.c )
 target_include_directories( gp_sdf PRIVATE sokol_gp/shaders )
-target_link_libraries(gp_sdf sokol m )
+target_link_libraries(gp_sdf sokol ${MATHLIB} )
 
-add_executable( gp_rect sokol_gp/samples/sample-rectangle.c )
+add_executable( gp_rect WIN32 sokol_gp/samples/sample-rectangle.c )
 target_include_directories( gp_rect PRIVATE sokol_gp/shaders )
-target_link_libraries(gp_rect sokol m )
+target_link_libraries(gp_rect sokol ${MATHLIB} )
 
-add_executable( gp_framebuffer sokol_gp/samples/sample-framebuffer.c )
+add_executable( gp_framebuffer WIN32 sokol_gp/samples/sample-framebuffer.c )
 target_include_directories( gp_framebuffer PRIVATE sokol_gp/shaders )
-target_link_libraries(gp_framebuffer sokol m )
+target_link_libraries(gp_framebuffer sokol ${MATHLIB} )
 
-add_executable( gp_effect sokol_gp/samples/sample-effect.c )
+add_executable( gp_effect WIN32 sokol_gp/samples/sample-effect.c )
 target_include_directories( gp_effect PRIVATE stb_image sokol_gp/shaders )
-target_link_libraries(gp_effect sokol m )
+target_link_libraries(gp_effect sokol ${MATHLIB} )
 
 # add_executable( gp_bench sokol_gp/samples/sample-bench.c )
 # target_include_directories( gp_effect PRIVATE sokol_gp/shaders )
-# target_link_libraries(gp_bench sokol m )
+# target_link_libraries(gp_bench sokol ${MATHLIB} )
 
 
 # Emscripten-specific linker options

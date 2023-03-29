@@ -5,7 +5,7 @@
 
 
 // Sim tick is 10 ticks per second
-#define SIMTICK_TIME (1.0/10.0)
+#define SIMTICK_TIME (1.0f/10.0f)
 #define SIMTICKS_PER_COMM_TURN (4)
 
 // Info is game which don't change

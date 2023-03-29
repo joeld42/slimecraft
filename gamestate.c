@@ -118,7 +118,7 @@ void SlimeGame_Tick( SlimeGame *game ) {
     memcpy( game->prev, game->curr, sizeof( SlimeGameState ) );
 
     // Tick current state
-    float dt = 1.0 / 10.0;
+    float dt = 1.0f / 10.0f;
     float speed = 1.0f * dt;
     SlimeGameState *state = game->curr;
     for (int i=0; i < state->numUnits; i++ ) {

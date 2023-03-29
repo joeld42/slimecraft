@@ -1,6 +1,9 @@
-//------------------------------------------------------------------------------
-//  Simple C99 cimgui+sokol starter project for Win32, Linux and macOS.
-//------------------------------------------------------------------------------
+
+// For math.h on windows
+#define _USE_MATH_DEFINES
+
+
+// Sokol includes
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_gp.h"
