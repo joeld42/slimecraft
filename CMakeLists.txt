@@ -17,6 +17,8 @@ include( ${PROJECT_SOURCE_DIR}/enet/CMakeLists.txt)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     set ( ENET_LIBS enet winmm ws2_32)
+else()
+set ( ENET_LIBS enet)
 endif()
 
 
@@ -79,6 +81,8 @@ set ( SLIMESERV_SRC
     common.c
     cmdlist.h
     cmdlist.c
+    network.h
+    network.c
     slimeserver.h
     slimeserver.c
     slimeclient.h
