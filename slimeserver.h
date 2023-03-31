@@ -5,6 +5,10 @@
 #include "gamestate.h"
 #include "cmdlist.h"
 
+#include <enet/enet.h>
+
+// Might want more than players for spectators or logging
+#define MAX_PEERS (12)
 
 typedef struct {
     
@@ -18,6 +22,13 @@ typedef struct {
     u32 currentTick; // Count of sim ticks    
     float tickLeftover; // leftover time in seconds
 
+	// Network stuff
+	ENetAddress address;
+	ENetHost* enetServer;
+
+	// Peers
+	u32 numPeers;
+	ENetPeer* peers[MAX_PEERS];
 
 } SlimeServer;
 

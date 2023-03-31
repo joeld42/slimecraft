@@ -18,6 +18,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <enet/enet.h>
+
 // Game includes
 #include "gamestate.h"
 #include "slimeserver.h"
@@ -56,6 +58,15 @@ SlimeServer server;
 
 
 static void init(void) {
+
+	// Initialize enet
+	if (enet_initialize() != 0)
+	{
+		fprintf(stderr, "An error occurred while initializing ENet.\n");
+		exit(EXIT_FAILURE);
+	}
+	atexit(enet_deinitialize);
+
     sg_setup(&(sg_desc){
         .context = sapp_sgcontext(),
         .logger.func = slog_func,
