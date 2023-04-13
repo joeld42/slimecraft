@@ -52,12 +52,29 @@ static struct {
 static struct
 {
 	bool showPlayerWindow;
+
+	bool sectionViewOpen;
 } guiState;
 
 SlimeServer server;
 
 
 static void init(void) {
+
+	// FIXME: make a log window in IMGUI instead
+#ifdef WIN32
+#  ifndef NDEBUG
+	// Create a win32 console for printfing
+	AllocConsole();
+
+	freopen("CONIN$", "rb", stdin);   // reopen stdin handle as console window input
+	freopen("CONOUT$", "wb", stdout);  // reopen stout handle as console window output
+	freopen("CONOUT$", "wb", stderr); // reopen stderr handle as console
+									// window output
+#  endif
+#endif
+
+	printf("Hello from SlimeServ GUI.\n");
 
 	// Initialize enet
 	if (enet_initialize() != 0)
@@ -277,24 +294,32 @@ static void frame(void) {
     igSetNextWindowSize((ImVec2){400, 200}, ImGuiCond_Once);
     
     igBegin("Slimecraft Server GUI", 0, ImGuiWindowFlags_None);
-    igColorEdit3("Background", &state.pass_action.colors[0].value.r, 
-    ImGuiColorEditFlags_None);
-    
-    igSliderFloat2( "Position", (float*)&(state.cam_center), 0, state.map_size, "%2.0f", ImGuiSliderFlags_None );
-    igSliderFloat( "Zoom", &(state.cam_zoom), 1.0f, 
-                state.map_size * 1.5, "%2.0f", ImGuiSliderFlags_None );
 
-    bool doFocus = (state.hFocusUnit != 999);
-    igCheckbox( "Focus Unit", &doFocus );
-    if (doFocus) {
-        state.hFocusUnit = SlimeGame_GetUnitByIndex( game, 0 );
+	guiState.sectionViewOpen = true;
 
-        SimVec2 pos = SlimeGame_GetUnitPosition( game, state.hFocusUnit );
-        state.cam_center = (sgp_vec2){ pos.x, pos.y };
-    } else {
-        state.hFocusUnit = 999;
-    }
-    
+	if ( igCollapsingHeader_BoolPtr("View", NULL, ImGuiTreeNodeFlags_CollapsingHeader))
+	{
+		igColorEdit3("Background", &state.pass_action.colors[0].value.r,
+			ImGuiColorEditFlags_None);
+
+		igSliderFloat2("Position", (float*) & (state.cam_center), 0, state.map_size, "%2.0f", ImGuiSliderFlags_None);
+		igSliderFloat("Zoom", &(state.cam_zoom), 1.0f,
+			state.map_size * 1.5, "%2.0f", ImGuiSliderFlags_None);
+
+		bool doFocus = (state.hFocusUnit != 999);
+
+		igCheckbox("Focus Unit", &doFocus);
+		if ((doFocus) && (state.hFocusUnit < game->info->numPlayers)) {
+			state.hFocusUnit = SlimeGame_GetUnitByIndex(game, 0);
+
+			SimVec2 pos = SlimeGame_GetUnitPosition(game, state.hFocusUnit);
+			state.cam_center = (sgp_vec2) { pos.x, pos.y };
+		}
+		else {
+			state.hFocusUnit = 999;
+		}
+
+	}
     igEnd();
 
     /*=== UI CODE ENDS HERE ===*/
@@ -314,6 +339,9 @@ static void frame(void) {
 }
 
 static void cleanup(void) {
+
+	SlimeServer_Teardown(&server);
+
     simgui_shutdown();
     sgp_shutdown();
     sg_shutdown();

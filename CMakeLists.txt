@@ -74,7 +74,7 @@ endif()
 target_link_libraries(demo sokol)
 
 #=== Slimecraft test app
-set ( SLIMESERV_SRC 
+set ( SLIMESERV_SRC
     gamestate.h
     gamestate.c
     common.h
@@ -89,6 +89,7 @@ set ( SLIMESERV_SRC
     slimeclient.c
     )
 
+
 add_executable( slimeserv 
                 ${SLIMESERV_SRC}
                 slimeserv_cmdline.c )
@@ -98,6 +99,11 @@ add_executable( slimeserv_gui WIN32
                 ${SLIMESERV_SRC}
                 slimeserv_gui.c )
 target_link_libraries(slimeserv_gui sokol ${ENET_LIBS} ${MATHLIB} )
+
+add_executable( slimeserv_testclient 
+                ${SLIMESERV_SRC}
+                slimetestclient.c )
+target_link_libraries(slimeserv_testclient ${ENET_LIBS} ${MATHLIB} )
 
 # Extra executables == sokol GP samples
 add_executable( gp_prims WIN32 sokol_gp/samples/sample-primitives.c )

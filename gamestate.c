@@ -75,10 +75,10 @@ void SlimeGame_Init( SlimeGame *game ) {
     game->curr = (SlimeGameState*)calloc( 1, sizeof(SlimeGameState) );
     game->prev = (SlimeGameState*)calloc( 1, sizeof(SlimeGameState) );
     
-    SlimeGame_Reset( game );
+    SlimeGame_Reset( game, 0 );
 };
 
-void SlimeGame_Reset( SlimeGame *game ) {
+void SlimeGame_Reset( SlimeGame *game, int numPlayers ) {
 
     // Set default game info    
     memset( game->info, 0, sizeof(SlimeGameInfo) );
@@ -91,7 +91,7 @@ void SlimeGame_Reset( SlimeGame *game ) {
     RNG_Init( &(game->curr->rng) );
 
     // set up player state
-    game->info->numPlayers = 4;
+    game->info->numPlayers = numPlayers;
 
     // spawn some Founders
     for (int i = 0; i < game->info->numPlayers; i++ ) {
@@ -114,8 +114,11 @@ void SlimeGame_Reset( SlimeGame *game ) {
 }
 
 void SlimeGame_Tick( SlimeGame *game ) {
-    // Copy current state to previous
+
+	// Copy current state to previous
     memcpy( game->prev, game->curr, sizeof( SlimeGameState ) );
+	game->curr->tick = game->prev->tick + 1;
+
 
     // Tick current state
     float dt = 1.0f / 10.0f;
@@ -138,4 +141,6 @@ void SlimeGame_Tick( SlimeGame *game ) {
             }
         }        
     }
+
+	// TODO: checksum state
 }

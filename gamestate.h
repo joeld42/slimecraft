@@ -54,7 +54,11 @@ typedef struct  {
 #define MAX_BUILDINGS (100)
 
 typedef struct {
-    
+
+	// Tick
+	u32 tick;
+
+    // Unit List
     u16 numUnits;
     SlimeGameUnit units[MAX_UNITS]; 
     
@@ -82,7 +86,7 @@ void SlimeGame_SetUnitPosition( SlimeGame *game, HUnit unit, SimVec2 pos );
 SimVec2 SlimeGame_GetUnitAction( SlimeGame *game, HUnit unit, u8 *outAction );
 
 void SlimeGame_Init( SlimeGame *game );
-void SlimeGame_Reset( SlimeGame *game );
+void SlimeGame_Reset( SlimeGame *game, int numPlayers );
 void SlimeGame_Tick( SlimeGame *game );
 
 // Test stuff

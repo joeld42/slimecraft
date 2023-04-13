@@ -10,6 +10,7 @@
 // Might want more than players for spectators or logging
 #define MAX_PEERS (12)
 
+
 typedef struct {
     
     // Manages the gamestate 
@@ -35,5 +36,6 @@ typedef struct {
 
 void SlimeServer_InitAndStartServer( SlimeServer *server );
 void SlimeServer_Update( SlimeServer *server, f32 dt );
+void SlimeServer_Teardown(SlimeServer* server);
 
 #endif

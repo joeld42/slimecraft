@@ -3,6 +3,16 @@
 
 #include "common.h"
 
+#define SLIMECRAFT_PORT (20123)
+
+enum
+{
+	SC_NETCHANNEL_Lobby,
+	SC_NETCHANNEL_Game,
+
+	SC_NETCHANNEL_NUMCHANNELS
+};
+
 enum
 {
 	PacketType_NULL,
