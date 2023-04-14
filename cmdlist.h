@@ -41,4 +41,7 @@ u32 CmdList_Size( CmdList *cmdList );
 void CmdList_PushCommandForPlayer( CmdList *cmdList, u32 commsTurn, u8 player, Command cmd );
 CommandTurn CmdList_PopNextTurn( CmdList *cmdList );
 
+// For Debug GUI
+CommandTurn* CmdList_PeekCommand(int orderIndex);
+
 #endif

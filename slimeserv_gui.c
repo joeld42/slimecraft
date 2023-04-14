@@ -52,8 +52,7 @@ static struct {
 static struct
 {
 	bool showPlayerWindow;
-
-	bool sectionViewOpen;
+	bool showCmdListWindow;
 } guiState;
 
 SlimeServer server;
@@ -108,6 +107,8 @@ static void init(void) {
     state.map_size = 128.0;
     state.cam_center = (sgp_vec2){ state.map_size / 2.0f, state.map_size / 2.0f };    
     state.cam_zoom = state.map_size;
+
+	guiState.showCmdListWindow = true;
 
     SlimeServer_InitAndStartServer( &server );
 
@@ -235,6 +236,7 @@ static void ShowMainMenubar()
 		if (igBeginMenu("Window", true))
 		{
 			igCheckbox("Players", &(guiState.showPlayerWindow));
+			igCheckbox("CmdList", &(guiState.showCmdListWindow));
 			igEndMenu();
 		}
 
@@ -244,7 +246,7 @@ static void ShowMainMenubar()
 
 static void ShowPlayerWindow(SlimeGame* game)
 {
-	igSetNextWindowPos((ImVec2) { 10, 10 }, ImGuiCond_Once, (ImVec2) { 0, 0 });
+	igSetNextWindowPos((ImVec2) { 420, 20 }, ImGuiCond_Once, (ImVec2) { 0, 0 });
 	igSetNextWindowSize((ImVec2) { 400, 200 }, ImGuiCond_Once);
 
 	if (igBegin("Players", &(guiState.showPlayerWindow), ImGuiWindowFlags_None)) {
@@ -265,6 +267,48 @@ static void ShowPlayerWindow(SlimeGame* game)
 	}
 }
 
+static void ShowCommandListWindow(SlimeServer* server)
+{
+	SlimeGame* game = &(server->game);
+
+	igSetNextWindowPos((ImVec2) { 20, 230}, ImGuiCond_Once, (ImVec2) { 0, 0 });
+	igSetNextWindowSize((ImVec2) { 400, 200 }, ImGuiCond_Once);
+
+
+	if (igBegin("CommandList", &(guiState.showCmdListWindow), ImGuiWindowFlags_None)) {
+		
+		if ( igBeginTable("table-cmds", game->info->numPlayers + 1, ImGuiTableFlags_BordersV, (ImVec2){ .x=0, .y=0 }, 0 ))
+		{
+			
+			igTableSetupColumn("Tick", 0, 0, 0 );
+			for (int i = 0; i < game->info->numPlayers; i++) {
+				char buff[16];
+				sprintf(buff, "P%d", i + 1);
+				igTableSetupColumn(buff, 0, 0, 0);
+			}
+			igTableHeadersRow();
+
+			int numCmds = CmdList_Size( &(server->cmdList) );
+			for (int row = 0; row < numCmds; row++)
+			{
+				igTableNextRow( 0, 0.0f );
+
+				igTableSetColumnIndex(0);
+				igText("999" );
+
+				for (int column = 0; column < game->info->numPlayers; column++)
+				{
+					igTableSetColumnIndex(column+1);
+					igText("????", row, column);
+				}
+			}
+			igEndTable();
+		}
+		igEnd();
+	}
+}
+
+
 static void frame(void) {
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
@@ -281,6 +325,7 @@ static void frame(void) {
     // draw gamestate
     draw_gamestate();
 
+
     /*=== UI CODE STARTS HERE ===*/
 
 	ShowMainMenubar();
@@ -290,14 +335,18 @@ static void frame(void) {
 		ShowPlayerWindow( game );
 	}
 
-    igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
-    igSetNextWindowSize((ImVec2){400, 200}, ImGuiCond_Once);
+	if (guiState.showCmdListWindow)
+	{
+		ShowCommandListWindow(game);
+	}
+
+    igSetNextWindowPos((ImVec2){20,20}, ImGuiCond_FirstUseEver, (ImVec2){0,0});
+    igSetNextWindowSize((ImVec2){400, 200}, ImGuiCond_FirstUseEver);
     
     igBegin("Slimecraft Server GUI", 0, ImGuiWindowFlags_None);
 
-	guiState.sectionViewOpen = true;
 
-	if ( igCollapsingHeader_BoolPtr("View", NULL, ImGuiTreeNodeFlags_CollapsingHeader))
+	if ( igCollapsingHeader_BoolPtr("View", NULL, ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen ))
 	{
 		igColorEdit3("Background", &state.pass_action.colors[0].value.r,
 			ImGuiColorEditFlags_None);
@@ -349,14 +398,31 @@ static void cleanup(void) {
 
 static void event(const sapp_event* ev) {
     simgui_handle_event(ev);
+
+	switch( ev->type )
+	{
+	case SAPP_EVENTTYPE_KEY_DOWN:
+		
+		if (ev->key_code == SAPP_KEYCODE_C)
+		{
+			// Push on a synthetic command
+			Command cmd;
+			cmd.cmdType = Command_MOVE;
+			cmd.move.unit = 0;
+			cmd.move.targetX = 0.0f;
+			cmd.move.targetY = 0.0f;
+			CmdList_PushCommandForPlayer(&(server.cmdList), server.currentTick + 2, 0, cmd);
+		}
+		break;
+	}
 }
 
 sapp_desc sokol_main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
     return (sapp_desc){
-        .init_cb = init,
-        .frame_cb = frame,
+		.init_cb = init,
+			.frame_cb = frame, 
         .cleanup_cb = cleanup,
         .event_cb = event,
         .window_title = "SlimeServGUI",

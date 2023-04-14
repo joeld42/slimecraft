@@ -12,6 +12,12 @@ u32 CmdList_Size( CmdList *cmdList ) {
     }
 }
 
+CommandTurn* CmdList_PeekCommand( CmdList *cmdList, int orderIndex)
+{
+	u32 index = (orderIndex + cmdList->front) % MAX_CMDS;
+	return cmdList->cmds + index;
+}
+
 void CmdList_PushCommandForPlayer( CmdList *cmdList, u32 commsTurn, u8 player, Command cmd )
 {
     // push empty command turns on until we have a slot for

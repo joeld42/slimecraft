@@ -32,7 +32,7 @@ u16 SlimeGame_GetNumUnits( SlimeGame *game ) {
 // Note: this won't work anymore once units can be 
 // killed or removed, replace this with a proper slotlist
 HUnit SlimeGame_GetUnitByIndex( SlimeGame *game, u16 index ) {
-    // For the moment, indexes and handes are the same but that 
+    // For the moment, indexes and handles are the same but that 
     // will change when units can be destroyed
     return (HUnit)index;
 }
@@ -62,7 +62,7 @@ void SlimeGame_SetUnitPosition( SlimeGame *game, HUnit unit, SimVec2 pos ) {
     state->units[unit].pos = pos;
 }
 
-// TODO: this shouldn't exist, orders should go through Commands
+// private, orders should go through Commands
 void SlimeGame_OrderUnitMove( SlimeGame *game, HUnit unit, SimVec2 targPos ) {
     SlimeGameState *state = game->curr;
     assert(unit < state->numUnits);
@@ -102,10 +102,10 @@ void SlimeGame_Reset( SlimeGame *game, int numPlayers ) {
         startPos.y = RNG_NextFloatRange( &(game->curr->rng), 0, (f32)game->info->mapSizeY );
         SlimeGame_SetUnitPosition( game, hu, startPos );
 
-        SimVec2 movePos;
-        movePos.x = RNG_NextFloatRange( &(game->curr->rng), 0, (f32)game->info->mapSizeX );
-        movePos.y = RNG_NextFloatRange( &(game->curr->rng), 0, (f32)game->info->mapSizeY );
-        SlimeGame_OrderUnitMove( game, hu, movePos );
+        //SimVec2 movePos;
+        //movePos.x = RNG_NextFloatRange( &(game->curr->rng), 0, (f32)game->info->mapSizeX );
+        //movePos.y = RNG_NextFloatRange( &(game->curr->rng), 0, (f32)game->info->mapSizeY );
+        //SlimeGame_OrderUnitMove( game, hu, movePos );
     }
 
 
