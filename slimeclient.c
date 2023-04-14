@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+
 #include "slimeclient.h"
 
 
@@ -25,7 +27,7 @@ void SlimeClient_InitAndConnect(SlimeClient* client)
 		client->enetClient,
 		&(client->address),
 		SC_NETCHANNEL_NUMCHANNELS,
-		NULL /* connection data */);
+		(enet_uint32)NULL /* connection data */);
 	if (client->serverPeer == NULL)
 	{
 		printf("ERROR: failed to connect to server.\n");

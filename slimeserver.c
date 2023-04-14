@@ -166,6 +166,9 @@ void SlimeServer_Teardown(SlimeServer* server)
 				return;
 			}
 			break;
+
+		default:
+			break;
 		}
 	}
 
