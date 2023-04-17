@@ -10,6 +10,11 @@
 // Might want more than players for spectators or logging
 #define MAX_PEERS (12)
 
+typedef struct
+{
+	int playerId;
+	ENetPeer* enetPeer;
+} PeerInfo;
 
 typedef struct {
     
@@ -29,7 +34,7 @@ typedef struct {
 
 	// Peers
 	u32 numPeers;
-	ENetPeer* peers[MAX_PEERS];
+	PeerInfo peers[MAX_PEERS];
 
 } SlimeServer;
 

@@ -76,10 +76,13 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 			printf("Client connected... (id %d) IP is 0x%08x\n", netEvent.peer->connectID, netEvent.peer->incomingPeerID);
 
 			// I think peer is safe to hold onto here
-			server->peers[server->numPeers++] = netEvent.peer;
+			PeerInfo* pi = server->peers + server->numPeers++;
+			pi->enetPeer = netEvent.peer;
+
+			pi->playerId = server->game.info->numPlayers;
 
 			// Reset the game state
-			SlimeGame_Reset(&(server->game), server->numPeers);
+			SlimeGame_Reset(&(server->game), server->game.info->numPlayers + 1);
 
 			break;
 		}
@@ -90,7 +93,7 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 			if (server->numPeers > 1) {
 				for (u32 i = 0; i < server->numPeers; i++)
 				{
-					if (server->peers[i] == netEvent.peer)
+					if (server->peers[i].enetPeer == netEvent.peer)
 					{
 						server->peers[i] = server->peers[server->numPeers - 1];
 						break;
@@ -127,6 +130,8 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 
 	}
 
+
+
 	// Update game tick(s)
     server->tickLeftover += dt;
     while (server->tickLeftover > SIMTICK_TIME) {
@@ -141,7 +146,7 @@ void SlimeServer_Teardown(SlimeServer* server)
 {
 	for (int i=0; i < server->numPeers; i++)
 	{
-		enet_peer_disconnect( server->peers[i], 0 );
+		enet_peer_disconnect( server->peers[i].enetPeer, 0 );
 	}
 
 	// Wait up to 3 seconds for the disconnect to succeed
@@ -175,7 +180,7 @@ void SlimeServer_Teardown(SlimeServer* server)
 	// If we reach here, some clients didn't respond, so just reset them all
 	for (int i=0; i < server->numPeers; i++)
 	{
-		enet_peer_reset(server->peers[0]);
+		enet_peer_reset(server->peers[i].enetPeer);
 	}
 	server->numPeers = 0;
 }

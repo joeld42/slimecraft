@@ -87,6 +87,8 @@ set ( SLIMESERV_SRC
     slimeserver.c
     slimeclient.h
     slimeclient.c
+	botplayer.h
+	botplayer.c
     )
 
 

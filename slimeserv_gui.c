@@ -21,9 +21,12 @@
 #include <enet/enet.h>
 
 // Game includes
+#include <assert.h>
+
 #include "gamestate.h"
 #include "slimeserver.h"
 #include "slimeclient.h"
+#include "botplayer.h"
 
 ImColor playerCol[4] = {
     { 0.94f, 0.02f, 0.51f, 1.0f },
@@ -31,6 +34,8 @@ ImColor playerCol[4] = {
     { 0.65f, 0.96f, 0.01f, 1.0f },
     { 0.95f, 0.79f, 0.01f, 1.0f }
 };
+
+#define MAX_BOTS (MAX_PLAYERS)
 
 static struct {
     sg_pass_action pass_action;
@@ -47,6 +52,10 @@ static struct {
 
     // Stuff for game control
     float tickLeftover;
+
+	// Bot players
+	int numBotPlayers;
+	BotPlayerInfo bot[MAX_BOTS];
 } state;
 
 static struct
@@ -244,6 +253,30 @@ static void ShowMainMenubar()
 	}
 }
 
+static bool BotsFull()
+{
+	if ((state.numBotPlayers >= MAX_BOTS) ||
+		(server.game.info->numPlayers >= MAX_PLAYERS))
+	{
+		// no space for bots
+		return true;
+	}
+	return false;
+}
+
+static void AddBotPlayer()
+{
+	assert(!BotsFull());
+	
+	BotPlayerInfo* bot = state.bot + state.numBotPlayers;
+
+	// Initialize bot 
+	bot->playerId = server.game.info->numPlayers;
+
+	SlimeGame_Reset(&(server.game), server.game.info->numPlayers+1 );
+	
+}
+
 static void ShowPlayerWindow(SlimeGame* game)
 {
 	igSetNextWindowPos((ImVec2) { 420, 20 }, ImGuiCond_Once, (ImVec2) { 0, 0 });
@@ -254,12 +287,11 @@ static void ShowPlayerWindow(SlimeGame* game)
 		igLabelText("num_players", "%d Active Players", game->info->numPlayers);
 		igSeparator();
 
-		if (game->info->numPlayers < MAX_PLAYERS)
+		if (!BotsFull())
 		{
-
 			if (igSmallButton("Add Player"))
 			{
-				printf("TODO: Add Player.\n");
+				AddBotPlayer();
 			}
 		}
 
