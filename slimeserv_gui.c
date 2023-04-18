@@ -62,6 +62,9 @@ static struct
 {
 	bool showPlayerWindow;
 	bool showCmdListWindow;
+
+	// Extra info for GUI
+	char* playerName[MAX_PLAYERS];
 } guiState;
 
 SlimeServer server;
@@ -264,7 +267,7 @@ static bool BotsFull()
 	return false;
 }
 
-static void AddBotPlayer()
+static BotPlayerInfo *AddBotPlayer()
 {
 	assert(!BotsFull());
 	
@@ -274,7 +277,8 @@ static void AddBotPlayer()
 	bot->playerId = server.game.info->numPlayers;
 
 	SlimeGame_Reset(&(server.game), server.game.info->numPlayers+1 );
-	
+
+	return bot;
 }
 
 static void ShowPlayerWindow(SlimeGame* game)
@@ -444,6 +448,21 @@ static void event(const sapp_event* ev) {
 			cmd.move.targetX = 0.0f;
 			cmd.move.targetY = 0.0f;
 			CmdList_PushCommandForPlayer(&(server.cmdList), server.currentTick + 2, 0, cmd);
+		}
+
+		if (ev->key_code == SAPP_KEYCODE_B)
+		{
+			if (!BotsFull()) {
+				BotPlayerInfo *bot = AddBotPlayer();
+				if (bot) {
+					char buff[16];
+					sprintf( buff, "Bot%d", state.numBotPlayers);
+					guiState.playerName[bot->playerId] = strdup(buff);
+				}
+			} else
+			{
+				printf("Player List is full!\n");
+			}
 		}
 		break;
 	}

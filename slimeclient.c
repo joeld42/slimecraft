@@ -47,7 +47,7 @@ void SlimeClient_InitAndConnect(SlimeClient* client)
 			(client->address.host & 0x000000ff));
 
 
-		static PktMessage testPacket;
+		static PktDebug testPacket;
 		testPacket.header.packetType = PacketType_DEBUG;
 		strcpy(testPacket.msg, "Hello from client.");
 
@@ -71,7 +71,7 @@ void SlimeClient_InitAndConnect(SlimeClient* client)
 	SlimeGame_Init(&(client->game) );
 }
 
-bool SlimeClient_Update(SlimeClient* client)
+bool SlimeClient_Update(SlimeClient* client, f32 dt)
 {
 	ENetEvent event;
 	if (enet_host_service(client->enetClient, &event, 1000) > 0)
@@ -86,7 +86,9 @@ bool SlimeClient_Update(SlimeClient* client)
 
 			case ENET_EVENT_TYPE_CONNECT:
 			{
-				printf("Connect event... (id %d) IP is 0x%08x\n", event.peer->connectID, event.peer->incomingPeerID);
+				printf("Connect event... (id %d) IP is 0x%08x\n", 
+					event.peer->connectID, event.peer->incomingPeerID);
+
 				break;
 			}
 
@@ -102,10 +104,33 @@ bool SlimeClient_Update(SlimeClient* client)
 				Header* slimePacket = (Header*)(event.packet->data);
 				printf("Packet received from server %d, zzpacketype %d\n", event.peer->connectID, slimePacket->packetType);
 
+					if (slimePacket->packetType == PacketType_RESETGAME)
+					{
+						// Yoink! reset game.
+						PktResetGame* pktResetGame = (PktResetGame*)slimePacket;
+						printf("Got reset packet! my assigned player ID is %d (total players %d)\n",
+							pktResetGame->assignedPlayerId,
+							pktResetGame->numPlayers);
+						printf("TODO: Reset game\n\n\n");
+					}
+
 				break;
 			}
 		}
 	}
+
+
+	// Update game tick(s)
+	client->tickLeftover += dt;
+	while (client->tickLeftover > SIMTICK_TIME) {
+		client->tickLeftover -= SIMTICK_TIME;
+		SlimeGame_Tick(&(client->game));
+		printf("Tick: %d Checksum 0x%08X\n",
+			client->game.curr->tick, client->game.curr->checksum);
+	}
+	printf("Timeleft %3.2f\n", client->tickLeftover);
+
+
 	return true;
 }
 

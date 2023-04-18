@@ -28,7 +28,7 @@ typedef struct {
 } SlimeClient;
 
 void SlimeClient_InitAndConnect(SlimeClient* client);
-bool SlimeClient_Update(SlimeClient* client);
+bool SlimeClient_Update(SlimeClient* client, f32 dt );
 void SlimeClient_Teardown(SlimeClient* client);
 
 #endif

@@ -84,6 +84,18 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 			// Reset the game state
 			SlimeGame_Reset(&(server->game), server->game.info->numPlayers + 1);
 
+				// Send all the peer a reset packet
+				static PktResetGame resetPacket;
+				resetPacket.header.packetType = PacketType_RESETGAME;
+				resetPacket.numPlayers = server->game.info->numPlayers;
+				for (int i=0; i < server->numPeers; i++)
+				{
+					PeerInfo* peer = server->peers + i;
+					resetPacket.assignedPlayerId = peer->playerId;
+					ENetPacket* packet = enet_packet_create(&resetPacket, sizeof(resetPacket), ENET_PACKET_FLAG_RELIABLE);
+					enet_peer_send( peer->enetPeer, SC_NETCHANNEL_Lobby, packet);
+				}
+
 			break;
 		}
 
@@ -99,8 +111,14 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 						break;
 					}
 				}
-				server->numPeers--;
 			}
+			server->numPeers--;
+
+				// fixme, this doesn't work with bots or players, only
+			// supported for testing joining/quitting one player
+			printf("Resetting, numPeers %d (should be 0)\n", server->numPeers);
+			SlimeGame_Reset(&(server->game), 0 );
+
 			break;
 		}
 
@@ -112,7 +130,7 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 
 			if (slimePacket->packetType == PacketType_DEBUG)
 			{
-				PktMessage* packetMsg = (PktMessage*)slimePacket;
+				PktDebug* packetMsg = (PktDebug*)slimePacket;
 				printf("Debug Message: %s\n", packetMsg->msg);
 			}
 			else
@@ -131,13 +149,13 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 	}
 
 
-
 	// Update game tick(s)
     server->tickLeftover += dt;
     while (server->tickLeftover > SIMTICK_TIME) {
         server->tickLeftover -= SIMTICK_TIME;
         SlimeGame_Tick( &(server->game) );
-		printf("Tick: %d (netEvents %d)\n", server->game.curr->tick, hasEvents );
+		printf("Tick: %d (netEvents %d), Checksum 0x%08X\n", 
+			server->game.curr->tick, hasEvents, server->game.curr->checksum );
     }
 
 }

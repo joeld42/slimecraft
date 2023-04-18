@@ -5,10 +5,43 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
+#include <stdio.h>
 
-// Compute checksum for gamestate
-u64 GameState_Checksum( SlimeGameState *state ) {
-    return 0;
+
+// Compute checksum for gamestate, from http://home.thep.lu.se/~bjorn/crc/
+// This is probably overkill for just checking desync but i'd rather something
+// robust for now at least. Note passing in the checksum here is a little weird
+// because we eventuall store it in gamestate, and we need to be careful not to
+// use that as we're calculating, but keeping it this way incase we need to do
+// checksums over multiple blocks in the state
+u32 GameState_Checksum( SlimeGameState *state, u32 *checksum ) {
+
+	static u32* crc_table = NULL;
+
+	// Alloc and init crc table if this is the first time
+	if (!crc_table)
+	{
+		printf("Setting up CRC table...\n");
+		crc_table = (u32*)malloc(sizeof(u32) * 0x100);
+		for (int i=0; i < 0x100; i++)
+		{
+			u32 r = i;
+			for (int j=0; j < 8; j++)
+			{
+				r = (r & 1 ? 0 : (u32)0xEDB88320L) ^ r >> 1;
+			}
+			crc_table[i] = r ^ (u32)0xFF000000L; // fly you foools
+		}
+	}
+
+	u32 crc = *checksum;
+	for (size_t i=0; i < sizeof(SlimeGameState); i++)
+	{
+		crc = crc_table[(u8)* checksum ^ ((u8*)state)[i]] ^ crc >> 8;
+	}
+
+	*checksum = crc;
+	return crc;
 }
 
 HUnit SlimeGame_SpawnUnit( SlimeGame *game, u8 player, u8 type ) {
@@ -115,32 +148,42 @@ void SlimeGame_Reset( SlimeGame *game, int numPlayers ) {
 
 void SlimeGame_Tick( SlimeGame *game ) {
 
+	if (game->info->numPlayers == 0) {
+		printf("Skipping Tick: No players yet.\n");
+		return;
+	}
+
 	// Copy current state to previous
     memcpy( game->prev, game->curr, sizeof( SlimeGameState ) );
 	game->curr->tick = game->prev->tick + 1;
 
+	// Tick current state
+	float dt = 1.0f / 10.0f;
+	float speed = 1.0f * dt;
+	SlimeGameState* state = game->curr;
+	for (int i = 0; i < state->numUnits; i++) {
+		SlimeGameUnit* u = state->units + i;
+		if (u->action == Action_MOVING) {
+			SimVec2 dir = (SimVec2) {
+				u->target.x - u->pos.x,
+					u->target.y - u->pos.y
+			};
+			f32 d = sqrtf(dir.x * dir.x + dir.y * dir.y);
+			if (d < speed) {
+				u->pos = u->target;
+				u->action = Action_IDLE;
+			}
+			else {
+				dir.x /= d;
+				dir.y /= d;
+				u->pos.x += dir.x * speed;
+				u->pos.y += dir.y * speed;
+			}
+		}
+	}
 
-    // Tick current state
-    float dt = 1.0f / 10.0f;
-    float speed = 1.0f * dt;
-    SlimeGameState *state = game->curr;
-    for (int i=0; i < state->numUnits; i++ ) {
-        SlimeGameUnit *u = state->units + i;
-        if (u->action == Action_MOVING) {
-            SimVec2 dir = (SimVec2){ u->target.x - u->pos.x,
-                                     u->target.y - u->pos.y };
-            f32 d = sqrtf( dir.x * dir.x + dir.y *dir.y);
-            if (d < speed) {
-                u->pos = u->target;
-                u->action = Action_IDLE;
-            } else {
-                dir.x /= d;
-                dir.y /= d;
-                u->pos.x += dir.x * speed;
-                u->pos.y += dir.y * speed;
-            }
-        }        
-    }
 
-	// TODO: checksum state
+	u32 checksum = 0;
+	state->checksum = 0L; // Calculate checksum as if it's 0
+	state->checksum = GameState_Checksum(state, &checksum);
 }

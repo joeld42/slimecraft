@@ -58,6 +58,9 @@ typedef struct {
 	// Tick
 	u32 tick;
 
+	// Checksum for sync. Calculated as if this were 0
+	u32 checksum;
+
     // Unit List
     u16 numUnits;
     SlimeGameUnit units[MAX_UNITS]; 
@@ -72,7 +75,7 @@ typedef struct {
 } SlimeGame;
 
 // Compute checksum for gamestate
-u64 GameState_Checksum( SlimeGameState *state );
+u32 GameState_Checksum( SlimeGameState *state );
 
 
 // == Unit utils
