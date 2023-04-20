@@ -43,4 +43,6 @@ void SlimeServer_InitAndStartServer( SlimeServer *server );
 void SlimeServer_Update( SlimeServer *server, f32 dt );
 void SlimeServer_Teardown(SlimeServer* server);
 
+void SlimeServer_ResetGame(SlimeServer* server, int numPlayers );
+
 #endif

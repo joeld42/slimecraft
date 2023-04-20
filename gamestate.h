@@ -1,6 +1,7 @@
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
 
+#include "cmdlist.h"
 #include "common.h"
 
 // Sim tick is 10 ticks per second
@@ -90,7 +91,10 @@ SimVec2 SlimeGame_GetUnitAction( SlimeGame *game, HUnit unit, u8 *outAction );
 
 void SlimeGame_Init( SlimeGame *game );
 void SlimeGame_Reset( SlimeGame *game, int numPlayers );
-void SlimeGame_Tick( SlimeGame *game );
+void SlimeGame_Tick( SlimeGame *game, CommandTurn *cmds );
+
+u32 SlimeGame_CurrentCommsTick(u32 tick);
+u32 SlimeGame_NextCommandTick(u32 tick);
 
 // Test stuff
 void DoStuff();

@@ -3,6 +3,8 @@
 
 #include "slimeclient.h"
 
+#include "cmdlist.h"
+
 
 void SlimeClient_InitAndConnect(SlimeClient* client)
 {
@@ -71,6 +73,13 @@ void SlimeClient_InitAndConnect(SlimeClient* client)
 	SlimeGame_Init(&(client->game) );
 }
 
+void SlimeClient_ResetGame(SlimeClient* client, int numPlayers)
+{
+	SlimeGame_Reset(&(client->game), numPlayers);
+	CmdList_Reset(&(client->cmdList));
+}
+
+
 bool SlimeClient_Update(SlimeClient* client, f32 dt)
 {
 	ENetEvent event;
@@ -111,7 +120,11 @@ bool SlimeClient_Update(SlimeClient* client, f32 dt)
 						printf("Got reset packet! my assigned player ID is %d (total players %d)\n",
 							pktResetGame->assignedPlayerId,
 							pktResetGame->numPlayers);
-						printf("TODO: Reset game\n\n\n");
+
+
+						// set our client ID and reset the game state
+						client->playerID = pktResetGame->assignedPlayerId;
+						SlimeClient_ResetGame(client, pktResetGame->numPlayers);
 					}
 
 				break;
@@ -120,15 +133,35 @@ bool SlimeClient_Update(SlimeClient* client, f32 dt)
 	}
 
 
-	// Update game tick(s)
-	client->tickLeftover += dt;
-	while (client->tickLeftover > SIMTICK_TIME) {
-		client->tickLeftover -= SIMTICK_TIME;
-		SlimeGame_Tick(&(client->game));
-		printf("Tick: %d Checksum 0x%08X\n",
-			client->game.curr->tick, client->game.curr->checksum);
+	// If this is a comms tick, we should have commands for it.
+	u32 currTick = client->game.curr->tick;
+	u32 commsTick = SlimeGame_CurrentCommsTick(currTick);
+	CommandTurn* turnCmds = NULL;
+	if ( currTick == commsTick)
+	{
+		
+		turnCmds = CmdList_PeekCommand( &(client->cmdList), 0);
+		if ((!turnCmds) || (turnCmds->commsTurn != commsTick))
+		{
+			printf("TIMEOUT: No commands for comms tick %d, pausing...\n", commsTick );
+			client->netpause = true;
+		} else
+		{
+			printf("TICK %d is a comms tick.\n", currTick);
+		}
 	}
-	printf("Timeleft %3.2f\n", client->tickLeftover);
+
+	// Update game tick(s)
+	if (!client->netpause) {
+		client->tickLeftover += dt;
+		while (client->tickLeftover > SIMTICK_TIME) {
+			client->tickLeftover -= SIMTICK_TIME;
+			SlimeGame_Tick(&(client->game), turnCmds );
+			printf("Tick: %d Checksum 0x%08X\n",
+				client->game.curr->tick, client->game.curr->checksum);
+		}
+		//printf("Timeleft %3.2f\n", client->tickLeftover);
+	}
 
 
 	return true;

@@ -276,7 +276,7 @@ static BotPlayerInfo *AddBotPlayer()
 	// Initialize bot 
 	bot->playerId = server.game.info->numPlayers;
 
-	SlimeGame_Reset(&(server.game), server.game.info->numPlayers+1 );
+	SlimeServer_ResetGame(&server, server.game.info->numPlayers + 1);
 
 	return bot;
 }

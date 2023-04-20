@@ -82,13 +82,13 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 			pi->playerId = server->game.info->numPlayers;
 
 			// Reset the game state
-			SlimeGame_Reset(&(server->game), server->game.info->numPlayers + 1);
+			SlimeServer_ResetGame( server, server->game.info->numPlayers + 1);
 
 				// Send all the peer a reset packet
 				static PktResetGame resetPacket;
 				resetPacket.header.packetType = PacketType_RESETGAME;
 				resetPacket.numPlayers = server->game.info->numPlayers;
-				for (int i=0; i < server->numPeers; i++)
+				for (u32 i=0; i < server->numPeers; i++)
 				{
 					PeerInfo* peer = server->peers + i;
 					resetPacket.assignedPlayerId = peer->playerId;
@@ -117,7 +117,7 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 				// fixme, this doesn't work with bots or players, only
 			// supported for testing joining/quitting one player
 			printf("Resetting, numPeers %d (should be 0)\n", server->numPeers);
-			SlimeGame_Reset(&(server->game), 0 );
+			SlimeServer_ResetGame( server, 0 );
 
 			break;
 		}
@@ -148,21 +148,29 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 
 	}
 
+	// TODO: gather turn commands
+	CommandTurn* turnCmds = NULL;
 
 	// Update game tick(s)
     server->tickLeftover += dt;
     while (server->tickLeftover > SIMTICK_TIME) {
         server->tickLeftover -= SIMTICK_TIME;
-        SlimeGame_Tick( &(server->game) );
+        SlimeGame_Tick( &(server->game), turnCmds );
 		printf("Tick: %d (netEvents %d), Checksum 0x%08X\n", 
 			server->game.curr->tick, hasEvents, server->game.curr->checksum );
     }
 
 }
 
+void SlimeServer_ResetGame(SlimeServer* server, int numPlayers )
+{
+	SlimeGame_Reset(&(server->game), numPlayers );
+	CmdList_Reset(&(server->cmdList));
+}
+
 void SlimeServer_Teardown(SlimeServer* server)
 {
-	for (int i=0; i < server->numPeers; i++)
+	for (u32 i=0; i < server->numPeers; i++)
 	{
 		enet_peer_disconnect( server->peers[i].enetPeer, 0 );
 	}
@@ -196,7 +204,7 @@ void SlimeServer_Teardown(SlimeServer* server)
 	}
 
 	// If we reach here, some clients didn't respond, so just reset them all
-	for (int i=0; i < server->numPeers; i++)
+	for (u32 i=0; i < server->numPeers; i++)
 	{
 		enet_peer_reset(server->peers[i].enetPeer);
 	}

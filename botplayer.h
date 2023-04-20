@@ -1,6 +1,9 @@
 #ifndef BOTPLAYER_H
 #define BOTPLAYER_H
 
+#include "gamestate.h"
+#include "cmdlist.h"
+
 // Simple bot player for testing.
 // Not smart just does commands
 
@@ -13,6 +16,7 @@ typedef struct
 	// TODO more stuff
 } BotPlayerInfo;
 
+Command BotPlayer_ThinkCommand(SlimeGame* game, BotPlayerInfo* botstate);
 
 
 #endif

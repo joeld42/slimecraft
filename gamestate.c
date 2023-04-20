@@ -7,6 +7,8 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "cmdlist.h"
+
 
 // Compute checksum for gamestate, from http://home.thep.lu.se/~bjorn/crc/
 // This is probably overkill for just checking desync but i'd rather something
@@ -42,6 +44,19 @@ u32 GameState_Checksum( SlimeGameState *state, u32 *checksum ) {
 
 	*checksum = crc;
 	return crc;
+}
+
+
+// What was the comms tick number for the given tick?
+u32 SlimeGame_CurrentCommsTick(u32 tick)
+{
+	return tick - (tick + SIMTICKS_PER_COMM_TURN) % SIMTICKS_PER_COMM_TURN;
+}
+
+// What tick number should we issue commands for for this tick?
+u32 SlimeGame_NextCommandTick(u32 tick)
+{
+	return tick - (tick + SIMTICKS_PER_COMM_TURN) % SIMTICKS_PER_COMM_TURN + (SIMTICKS_PER_COMM_TURN * 2);
 }
 
 HUnit SlimeGame_SpawnUnit( SlimeGame *game, u8 player, u8 type ) {
@@ -146,7 +161,12 @@ void SlimeGame_Reset( SlimeGame *game, int numPlayers ) {
     memcpy( game->prev, game->curr, sizeof(SlimeGameState) );
 }
 
-void SlimeGame_Tick( SlimeGame *game ) {
+void SlimeGame_ApplyCommands(SlimeGame* game, CommandTurn *cmds) {
+
+	// TODO: actually apply the commands
+}
+
+void SlimeGame_Tick( SlimeGame *game, CommandTurn *cmds ) {
 
 	if (game->info->numPlayers == 0) {
 		printf("Skipping Tick: No players yet.\n");
@@ -156,6 +176,12 @@ void SlimeGame_Tick( SlimeGame *game ) {
 	// Copy current state to previous
     memcpy( game->prev, game->curr, sizeof( SlimeGameState ) );
 	game->curr->tick = game->prev->tick + 1;
+
+	// Apply commands
+	if (cmds != NULL)
+	{
+		SlimeGame_ApplyCommands(game, cmds);
+	}
 
 	// Tick current state
 	float dt = 1.0f / 10.0f;

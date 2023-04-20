@@ -1,9 +1,27 @@
 #include "cmdlist.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+
+// clear the command list and push enough "Pass" commands to reach the first comms turn
+void CmdList_Reset(CmdList* cmdList)
+{
+	memset(cmdList, 0, sizeof(CmdList));
+	cmdList->back++;
+	CommandTurn* startCmd = cmdList->cmds + cmdList->front;
+
+	startCmd->commsTurn = 0;
+	Command passCmd = { .cmdType = Command_PASS };
+	
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		startCmd->cmdForPlayer[i] = passCmd;
+	}
+
+	printf("After CmdList_Reset, size is %d\n", CmdList_Size(cmdList));
+}
 u32 CmdList_Size( CmdList *cmdList ) {
     if (cmdList->front > cmdList->back) {
         return (cmdList->back + MAX_CMDS) - cmdList->front;
@@ -14,6 +32,12 @@ u32 CmdList_Size( CmdList *cmdList ) {
 
 CommandTurn* CmdList_PeekCommand( CmdList *cmdList, int orderIndex)
 {
+	if (cmdList->front == cmdList->back)
+	{
+		// list is empty
+		return NULL;
+	}
+
 	u32 index = (orderIndex + cmdList->front) % MAX_CMDS;
 	return cmdList->cmds + index;
 }
@@ -35,6 +59,7 @@ void CmdList_PushCommandForPlayer( CmdList *cmdList, u32 commsTurn, u8 player, C
         }
         CommandTurn *cmdTurn = cmdList->cmds + cmdList->back;        
         cmdTurn->commsTurn = lastTurn + 1;
+		// TODO: zero out command?
     }
 
     // Now find the right slot for our commsTurn
@@ -53,7 +78,6 @@ void CmdList_PushCommandForPlayer( CmdList *cmdList, u32 commsTurn, u8 player, C
     // now set the command
     assert( player < MAX_PLAYERS );
     cmdTurn->cmdForPlayer[ player ] = cmd;
-
 }
 
 CommandTurn CmdList_PopNextTurn( CmdList *cmdList )

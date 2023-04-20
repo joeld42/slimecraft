@@ -27,8 +27,10 @@ int main(int argc, char* argv[])
 
 	// Update the client until disconnected. Since this is the test client we don't need to
 	// tick faster than sim tick
-	while(SlimeClient_Update(client, SIMTICK_TIME ))
+	bool running = true;
+	while(running)
 	{
+		running = SlimeClient_Update(client, SIMTICK_TIME);
 		printf("Update...\n" );
 	}
 
