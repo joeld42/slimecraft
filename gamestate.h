@@ -1,14 +1,7 @@
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
 
-#include "cmdlist.h"
 #include "common.h"
-
-// Sim tick is 10 ticks per second
-#define SIMTICK_TIME (1.0f/10.0f)
-#define SIMTICKS_PER_COMM_TURN (4)
-
-#define MAX_PLAYERS (6)
 
 typedef struct
 {
@@ -76,8 +69,7 @@ typedef struct {
 } SlimeGame;
 
 // Compute checksum for gamestate
-u32 GameState_Checksum( SlimeGameState *state );
-
+u32 GameState_Checksum(SlimeGameState* state, u32* checksum);
 
 // == Unit utils
 HUnit SlimeGame_SpawnUnit( SlimeGame *game, u8 player, u8 type );
@@ -93,8 +85,9 @@ void SlimeGame_Init( SlimeGame *game );
 void SlimeGame_Reset( SlimeGame *game, int numPlayers );
 void SlimeGame_Tick( SlimeGame *game, CommandTurn *cmds );
 
-u32 SlimeGame_CurrentCommsTick(u32 tick);
-u32 SlimeGame_NextCommandTick(u32 tick);
+u32 SlimeGame_CurrentCommsTick(u32 tick); // What was the comms tick number for the given tick?
+u32 SlimeGame_NextCommsTick(u32 tick); // What tick number is the next comms tick
+u32 SlimeGame_NextCommandTick(u32 tick); // What tick number should we issue commands for for this tick?
 
 // Test stuff
 void DoStuff();

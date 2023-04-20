@@ -18,6 +18,9 @@
 // checksums over multiple blocks in the state
 u32 GameState_Checksum( SlimeGameState *state, u32 *checksum ) {
 
+	// could make this optional i guess
+	assert(checksum);
+
 	static u32* crc_table = NULL;
 
 	// Alloc and init crc table if this is the first time
@@ -53,11 +56,18 @@ u32 SlimeGame_CurrentCommsTick(u32 tick)
 	return tick - (tick + SIMTICKS_PER_COMM_TURN) % SIMTICKS_PER_COMM_TURN;
 }
 
+// What tick number is the next comms tick
+u32 SlimeGame_NextCommsTick(u32 tick)
+{
+	return tick - (tick + SIMTICKS_PER_COMM_TURN) % SIMTICKS_PER_COMM_TURN + SIMTICKS_PER_COMM_TURN;
+}
+
 // What tick number should we issue commands for for this tick?
 u32 SlimeGame_NextCommandTick(u32 tick)
 {
 	return tick - (tick + SIMTICKS_PER_COMM_TURN) % SIMTICKS_PER_COMM_TURN + (SIMTICKS_PER_COMM_TURN * 2);
 }
+
 
 HUnit SlimeGame_SpawnUnit( SlimeGame *game, u8 player, u8 type ) {
     SlimeGameState *state = game->curr;

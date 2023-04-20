@@ -29,7 +29,7 @@ void SlimeClient_InitAndConnect(SlimeClient* client)
 		client->enetClient,
 		&(client->address),
 		SC_NETCHANNEL_NUMCHANNELS,
-		(enet_uint32)NULL /* connection data */);
+		(enet_uint32)0 /* connection data */);
 	if (client->serverPeer == NULL)
 	{
 		printf("ERROR: failed to connect to server.\n");
@@ -137,9 +137,8 @@ bool SlimeClient_Update(SlimeClient* client, f32 dt)
 	u32 currTick = client->game.curr->tick;
 	u32 commsTick = SlimeGame_CurrentCommsTick(currTick);
 	CommandTurn* turnCmds = NULL;
-	if ( currTick == commsTick)
+	if (currTick == commsTick)
 	{
-		
 		turnCmds = CmdList_PeekCommand( &(client->cmdList), 0);
 		if ((!turnCmds) || (turnCmds->commsTurn != commsTick))
 		{
@@ -151,6 +150,10 @@ bool SlimeClient_Update(SlimeClient* client, f32 dt)
 		}
 	}
 
+	// After update, if this is a comms turn, send a command for next tick.
+	u32 lastChanceTick = SlimeGame_NextCommsTick(currTick) - 1;
+	bool shouldSendPassCommand = false;
+
 	// Update game tick(s)
 	if (!client->netpause) {
 		client->tickLeftover += dt;
@@ -159,9 +162,25 @@ bool SlimeClient_Update(SlimeClient* client, f32 dt)
 			SlimeGame_Tick(&(client->game), turnCmds );
 			printf("Tick: %d Checksum 0x%08X\n",
 				client->game.curr->tick, client->game.curr->checksum);
+
+			if (client->game.curr->tick == lastChanceTick)
+			{
+				shouldSendPassCommand = true;
+			}
 		}
 		//printf("Timeleft %3.2f\n", client->tickLeftover);
+
+		// If we haven't already sent a command yet, send a pass command
+		static PktCommand cmdPacket;
+		cmdPacket.header.packetType = PacketType_COMMAND;
+		cmdPacket.cmd.cmdType = Command_PASS;
+		ENetPacket* packet = enet_packet_create(&cmdPacket, sizeof(cmdPacket), 0 );
+		enet_peer_send(client->serverPeer, SC_NETCHANNEL_Game, packet);
+
 	}
+
+
+	
 
 
 	return true;

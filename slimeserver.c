@@ -128,10 +128,24 @@ void SlimeServer_Update( SlimeServer *server, f32 dt )
 			Header* slimePacket = (Header*)(netEvent.packet->data);
 			printf("Packet received from %d, packetype %d\n", netEvent.peer->connectID, slimePacket->packetType);
 
+			// See which peer this came from
+			PeerInfo* sender;
+			for (int i = 0; i < server->numPeers; i++) {
+				if (server->peers[i].enetPeer->connectID == netEvent.peer->connectID)
+				{
+					sender = server->peers + i;
+				}
+			}
+
 			if (slimePacket->packetType == PacketType_DEBUG)
 			{
 				PktDebug* packetMsg = (PktDebug*)slimePacket;
 				printf("Debug Message: %s\n", packetMsg->msg);
+			}
+			else if (slimePacket->packetType == PacketType_COMMAND)
+			{
+				PktCommand* packetCmd = (PktCommand*)slimePacket;
+				printf("Command Packet: command %d (sent from player %d)\n", packetCmd->cmd.cmdType, sender->playerId );
 			}
 			else
 			{

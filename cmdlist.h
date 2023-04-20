@@ -25,7 +25,7 @@ typedef union {
     CommandMove move;
 } Command;
 
-typedef struct {
+typedef struct CommandTurn_s {
     u32 commsTurn;
     Command cmdForPlayer[MAX_PLAYERS];
 } CommandTurn;

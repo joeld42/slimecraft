@@ -17,12 +17,23 @@ typedef float     f32;
 typedef double    f64;
 typedef uint8_t   b8;
 typedef uint32_t  b32;
+
+//==[ Game Settings ]==========================
+
+// Sim tick is 10 ticks per second
+#define SIMTICK_TIME (1.0f/10.0f)
+#define SIMTICKS_PER_COMM_TURN (4)
+
+#define MAX_PLAYERS (6)
+
 //===[ Game types ] ======
 
 // handle types, might make struct
 typedef u32 HUnit;
 typedef u32 Building;
 
+// decls
+typedef struct CommandTurn_s CommandTurn;
 
 //==[ Random Number Generator ]==========================
 
@@ -38,6 +49,7 @@ void RNG_Init( RNGState *rng );
 u32 RNG_Next( RNGState *rng );
 f32 RNG_NextFloat( RNGState *rng );
 f32 RNG_NextFloatRange( RNGState *rng, f32 rangeMin, f32 rangeMax );
+
 
 
 

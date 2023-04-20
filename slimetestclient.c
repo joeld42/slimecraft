@@ -11,6 +11,20 @@ int main(int argc, char* argv[])
 	SlimeGameState* gs = (SlimeGameState*)malloc(sizeof(SlimeGameState));
 	printf("Gamestate size is %zu\n", sizeof(SlimeGameState));
 
+	// Test print tick info
+#if 1
+	for (int i=0; i < 20; i++)
+	{
+		u32 lastChanceTick = SlimeGame_NextCommsTick(i) - 1;
+		bool lastChance = (i == lastChanceTick);
+		printf("TICK %d CommTurn %d NextComm %d lastChance (%d) %s\n", i,
+			SlimeGame_CurrentCommsTick(i),
+			SlimeGame_NextCommandTick(i),
+			lastChanceTick,
+			lastChance?"YES":"no");
+	}
+#endif
+
 	// Initialize enet
 	if (enet_initialize() != 0)
 	{
